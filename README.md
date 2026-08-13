@@ -1,12 +1,40 @@
-# Exact Claim Verifier
+<p align="center">
+  <img src="https://raw.githubusercontent.com/alecstecpe-oss/exact-claim-verifier/main/docs/assets/ecv-gothic-banner.png" alt="ECV/1 technical flow: a strict structured claim enters one of three supported exact domains and returns one of five bounded verdicts" width="100%">
+</p>
 
-[![CI](https://github.com/alecstecpe-oss/exact-claim-verifier/actions/workflows/ci.yml/badge.svg)](https://github.com/alecstecpe-oss/exact-claim-verifier/actions/workflows/ci.yml)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+<h1 align="center">Exact Claim Verifier</h1>
+
+<p align="center">
+  <strong>Exact arithmetic. Bounded authority. Deterministic verdicts.</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/alecstecpe-oss/exact-claim-verifier/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/alecstecpe-oss/exact-claim-verifier/ci.yml?branch=main&amp;style=flat-square&amp;label=CI&amp;labelColor=09090b&amp;color=f97316"></a>
+  <a href="https://github.com/alecstecpe-oss/exact-claim-verifier/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/alecstecpe-oss/exact-claim-verifier?style=flat-square&amp;label=release&amp;labelColor=09090b&amp;color=f97316"></a>
+  <a href="https://www.python.org/"><img alt="Python 3.10 or newer" src="https://img.shields.io/badge/Python-3.10%2B-f97316?style=flat-square&amp;labelColor=09090b&amp;logo=python&amp;logoColor=white"></a>
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-f97316?style=flat-square&amp;labelColor=09090b"></a>
+</p>
+
+<p align="center">
+  <a href="spec/ECV_SPEC_V1.md">Specification</a> &middot;
+  <a href="docs/THREAT_MODEL.md">Threat model</a> &middot;
+  <a href="https://github.com/alecstecpe-oss/verifiable-evidence-capsule">Companion VEC</a>
+</p>
+
+---
 
 Exact Claim Verifier (ECV) is a small, offline reference checker for structured exact claims in explicitly declared mathematical domains. It uses only the Python standard library at runtime and never converts exact values to floating point.
 
 ECV does not parse natural-language mathematics. A producer supplies an `ECV/1` JSON claim; the public checker validates its schema, recomputes the relevant exact predicate, and returns a bounded verdict.
+
+> [!IMPORTANT]
+> **Exact verification is not universal proof.** `EXACTLY_VERIFIED_IN_DOMAIN` means that one declared predicate recomputed true inside a supported ECV/1 domain. It does not validate the formalization, provenance, or external meaning of the claim.
+
+## The verifier at a glance
+
+| Compute exactly | Bound the decision | Expose uncertainty |
+|---|---|---|
+| Canonical integers and `fractions.Fraction`; no silent floating-point conversion. | Small declared domains, strict schemas, and deterministic resource ceilings. | False claims are `REFUTED`; unsupported authority becomes `ABSTAIN`; malformed inputs remain `INVALID_INPUT`. |
 
 ## Five-minute replay
 
