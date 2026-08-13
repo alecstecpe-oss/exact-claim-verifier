@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Exact Claim Verifier technical overview</title>
+  <desc id="desc">A flat black, ivory, and orange social card showing a strict ECV/1 JSON envelope routed to three supported exact domains and one of five bounded deterministic verdicts.</desc>
+  <style>
+    .display { font-family: "Arial Narrow", "Bahnschrift Condensed", "Segoe UI", sans-serif; font-weight: 800; letter-spacing: 1px; }
+    .sans { font-family: "Segoe UI", Arial, sans-serif; }
+    .mono { font-family: "Cascadia Mono", Consolas, monospace; }
+    .label { font-family: "Segoe UI", Arial, sans-serif; font-size: 16px; font-weight: 700; letter-spacing: 2.5px; }
+    .small { font-family: "Segoe UI", Arial, sans-serif; font-size: 15px; }
+  </style>
+
+  <rect width="1600" height="900" fill="#080808"/>
+  <circle cx="1420" cy="80" r="310" fill="#f36b16"/>
+  <path d="M0 0H1600V900H0Z" fill="none" stroke="#27231f" stroke-width="2"/>
+  <path d="M58 44H250M44 58V178M1350 856H1542M1556 722V842" fill="none" stroke="#f2eee6" stroke-width="4"/>
+  <path d="M44 202V240M1556 660V698" fill="none" stroke="#f36b16" stroke-width="4"/>
+
+  <g transform="translate(78 74)">
+    <text class="label" x="0" y="0" fill="#f36b16">ECV/1 · OFFLINE REFERENCE CHECKER</text>
+    <text class="display" x="0" y="94" fill="#f2eee6" font-size="78">EXACT CLAIM VERIFIER</text>
+    <text class="sans" x="3" y="142" fill="#bfb8ad" font-size="24">Exact arithmetic. Three declared domains. Deterministic bounded verdicts.</text>
+  </g>
+
+  <g transform="translate(80 270)">
+    <text class="label" x="0" y="0" fill="#f36b16">01 · STRICT INPUT</text>
+    <rect x="0" y="28" width="300" height="380" rx="3" fill="#11100f" stroke="#4a433c" stroke-width="2"/>
+    <text class="mono" x="24" y="82" fill="#f2eee6" font-size="18">{</text>
+    <text class="mono" x="42" y="116" fill="#f36b16" font-size="17">"spec": "ECV/1",</text>
+    <text class="mono" x="42" y="150" fill="#f2eee6" font-size="17">"domain": "...",</text>
+    <text class="mono" x="42" y="184" fill="#f2eee6" font-size="17">"claim": {...}</text>
+    <text class="mono" x="24" y="218" fill="#f2eee6" font-size="18">}</text>
+    <path d="M24 246H276" stroke="#3a3530"/>
+    <text class="small" x="24" y="282" fill="#bfb8ad">Closed JSON objects</text>
+    <text class="small" x="24" y="310" fill="#bfb8ad">Canonical integer strings</text>
+    <text class="small" x="24" y="338" fill="#bfb8ad">Reduced rational strings</text>
+    <text class="small" x="24" y="374" fill="#918980">Malformed input stays</text>
+    <text class="mono" x="24" y="397" fill="#f36b16">INVALID_INPUT</text>
+  </g>
+
+  <path d="M398 490H438" fill="none" stroke="#f36b16" stroke-width="3"/>
+  <path d="M428 480L440 490L428 500" fill="none" stroke="#f36b16" stroke-width="3"/>
+
+  <g transform="translate(460 270)">
+    <text class="label" x="0" y="0" fill="#f36b16">02 · SUPPORTED EXACT DOMAINS</text>
+    <rect x="0" y="28" width="650" height="380" rx="3" fill="#11100f" stroke="#4a433c" stroke-width="2"/>
+
+    <g transform="translate(20 48)">
+      <rect x="0" y="0" width="610" height="94" fill="#080808" stroke="#5a5149"/>
+      <rect x="0" y="0" width="7" height="94" fill="#f36b16"/>
+      <text class="mono" x="24" y="30" fill="#f36b16" font-size="16">rational-linear-system / unique-solution</text>
+      <text class="mono" x="24" y="58" fill="#f2eee6" font-size="16">A*x == b</text>
+      <text class="mono" x="215" y="58" fill="#bfb8ad" font-size="16">rank(A) == rank([A|b]) == len(x)</text>
+      <text class="small" x="24" y="82" fill="#918980">Exact Gaussian-elimination ranks over canonical rationals.</text>
+    </g>
+
+    <g transform="translate(20 154)">
+      <rect x="0" y="0" width="610" height="94" fill="#080808" stroke="#5a5149"/>
+      <rect x="0" y="0" width="7" height="94" fill="#f36b16"/>
+      <text class="mono" x="24" y="30" fill="#f36b16" font-size="16">integer-polynomial-identity / identity</text>
+      <text class="mono" x="24" y="58" fill="#f2eee6" font-size="16">expand(left AST) == expand(right AST)</text>
+      <text class="small" x="24" y="82" fill="#918980">Exact sparse coefficient maps over the declared variables.</text>
+    </g>
+
+    <g transform="translate(20 260)">
+      <rect x="0" y="0" width="610" height="94" fill="#080808" stroke="#5a5149"/>
+      <rect x="0" y="0" width="7" height="94" fill="#f36b16"/>
+      <text class="mono" x="24" y="30" fill="#f36b16" font-size="16">modular-arithmetic / crt-solution</text>
+      <text class="mono" x="24" y="58" fill="#f2eee6" font-size="16">0 &lt;= x &lt; M</text>
+      <text class="mono" x="215" y="58" fill="#bfb8ad" font-size="16">for all i: x mod m_i == r_i</text>
+      <text class="small" x="24" y="82" fill="#918980">Pairwise-coprime moduli; M is the uniqueness modulus.</text>
+    </g>
+  </g>
+
+  <path d="M1128 490H1168" fill="none" stroke="#f36b16" stroke-width="3"/>
+  <path d="M1158 480L1170 490L1158 500" fill="none" stroke="#f36b16" stroke-width="3"/>
+
+  <g transform="translate(1190 270)">
+    <text class="label" x="0" y="0" fill="#080808">03 · RESULT</text>
+    <rect x="0" y="28" width="330" height="380" rx="3" fill="#080808" stroke="#080808" stroke-width="2"/>
+    <text class="label" x="20" y="72" fill="#f2eee6">ECV_RESULT_V1</text>
+
+    <g transform="translate(20 98)">
+      <rect x="0" y="0" width="290" height="47" fill="#171411" stroke="#f36b16"/>
+      <text class="mono" x="14" y="29" fill="#f36b16" font-size="14">EXACTLY_VERIFIED_IN_DOMAIN</text>
+      <text class="mono" x="276" y="29" fill="#f2eee6" font-size="14" text-anchor="end">0</text>
+      <text class="mono" x="14" y="70" fill="#f2eee6" font-size="14">REFUTED_IN_DOMAIN</text>
+      <text class="mono" x="276" y="70" fill="#918980" font-size="14" text-anchor="end">1</text>
+      <text class="mono" x="14" y="111" fill="#f2eee6" font-size="14">ABSTAIN_OUT_OF_DOMAIN</text>
+      <text class="mono" x="276" y="111" fill="#918980" font-size="14" text-anchor="end">1</text>
+      <text class="mono" x="14" y="152" fill="#f2eee6" font-size="14">RESOURCE_LIMIT</text>
+      <text class="mono" x="276" y="152" fill="#918980" font-size="14" text-anchor="end">1</text>
+      <text class="mono" x="14" y="193" fill="#f2eee6" font-size="14">INVALID_INPUT</text>
+      <text class="mono" x="276" y="193" fill="#918980" font-size="14" text-anchor="end">2</text>
+    </g>
+    <path d="M20 316H310" stroke="#554b43"/>
+    <text class="small" x="20" y="350" fill="#bfb8ad">Exact integers and rationals</text>
+    <text class="small" x="20" y="376" fill="#bfb8ad">Deterministic application ceilings</text>
+  </g>
+
+  <g transform="translate(80 742)">
+    <path d="M0 0H1440" stroke="#f36b16" stroke-width="3"/>
+    <text class="display" x="0" y="58" fill="#f36b16" font-size="34">BOUNDED</text>
+    <text class="sans" x="225" y="57" fill="#f2eee6" font-size="22">A verified verdict applies only to the supplied structured claim inside ECV/1.</text>
+    <text class="sans" x="0" y="104" fill="#918980" font-size="19">Not natural-language formalization · not provenance · not authorship · not universal proof.</text>
+    <text class="mono" x="1440" y="104" fill="#918980" font-size="15" text-anchor="end">github.com/alecstecpe-oss/exact-claim-verifier</text>
+  </g>
+</svg>
