@@ -82,8 +82,8 @@ def test_abstains_when_crt_moduli_are_not_pairwise_coprime() -> None:
 
 
 def test_reports_resource_limit_for_crt_product_growth() -> None:
-    first_modulus = "1" + ("0" * 998) + "7"
-    second_modulus = "1" + ("0" * 998) + "9"
+    first_modulus = "1" + ("0" * 398) + "7"
+    second_modulus = "1" + ("0" * 398) + "9"
     result = exact_claim_verifier.verify_document(
         {
             "spec": "ECV/1",

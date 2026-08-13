@@ -125,7 +125,7 @@ def test_rejects_nonstring_polynomial_operation_without_throwing() -> None:
 
 
 def test_reports_resource_limit_for_polynomial_coefficient_growth() -> None:
-    huge = "9" * 1000
+    huge = "9" * 400
     result = exact_claim_verifier.verify_document(
         {
             "spec": "ECV/1",

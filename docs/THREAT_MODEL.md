@@ -41,7 +41,8 @@ Within ECV/1 and the stated TCB:
 - unknown domains produce abstention;
 - non-pairwise-coprime generalized CRT produces abstention;
 - deterministic application ceilings bound declared input dimensions and exact-number growth;
-- expected input failures produce machine-readable JSON instead of Python tracebacks.
+- decimal input and result ceilings remain enforceable under Python's minimum supported integer-string threshold;
+- expected document and command-line failures produce machine-readable JSON instead of Python tracebacks.
 
 ## Out of scope and residual risk
 
@@ -57,6 +58,8 @@ ECV does not defend against:
 - arbitrary mathematical domains or a universal theorem-proving adversary.
 
 The 1 MiB input cap and mathematical ceilings reduce denial-of-service surface but are not CPU, wall-clock, address-space, or process quotas. Run untrusted workloads under OS sandboxing and quotas when those properties are required.
+
+The GitHub release workflow, checksums, release statement, and attestations protect distribution identity and provenance. They do not authenticate an ECV input, prove that a formal claim matches external intent, or make the source repository itself a trusted independent builder.
 
 ## Composition with VEC
 

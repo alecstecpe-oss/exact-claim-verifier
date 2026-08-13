@@ -20,7 +20,9 @@ The input MUST:
 - contain no nonstandard `NaN`, `Infinity`, or `-Infinity` constant;
 - have a top-level JSON object.
 
-JSON array/object nesting MUST NOT exceed 256 container levels. JSON integer tokens above 1,024 digits and non-integer number tokens above 1,024 characters are invalid parser inputs. JSON numbers remain distinct from the string encodings required by the exact domains.
+JSON array/object nesting MUST NOT exceed 256 container levels. JSON integer tokens above 640 digits and non-integer number tokens above 1,024 characters are invalid parser inputs. JSON numbers remain distinct from the string encodings required by the exact domains. The 640-digit integer ceiling is normative and does not depend on the host interpreter's integer-string setting.
+
+Invalid CLI command syntax MUST produce an `ECV_RESULT_V1` result with verdict `INVALID_INPUT`, error code `COMMAND_INPUT_ERROR`, and exit code 2. It MUST NOT escape as an argparse usage message or traceback.
 
 The top-level object MUST contain exactly:
 
@@ -40,7 +42,7 @@ An integer MUST be a JSON string matching:
 0 | -?[1-9][0-9]*
 ```
 
-Therefore `-0`, `01`, `+1`, JSON number `1`, and JSON boolean `true` are invalid integer encodings. An integer component MUST NOT exceed 1,024 decimal digits, excluding a leading minus sign.
+Therefore `-0`, `01`, `+1`, JSON number `1`, and JSON boolean `true` are invalid integer encodings. An integer component MUST NOT exceed 640 decimal digits, excluding a leading minus sign.
 
 ### 3.2 Rationals
 
@@ -179,12 +181,12 @@ Let `M` be the product of all moduli. The proposed solution MUST satisfy `0 <= s
 
 ## 9. Intermediate-result ceilings
 
-Each supplied integer component is limited to 1,024 decimal digits. In addition:
+Each supplied integer component is limited to 640 decimal digits. In addition:
 
-- intermediate integer results are limited to 4,096 bits;
-- every intermediate rational numerator and denominator is limited to 4,096 bits.
+- intermediate integer results are limited to 640 decimal digits;
+- every intermediate rational numerator and denominator is limited to 640 decimal digits.
 
-Crossing a ceiling produces `RESOURCE_LIMIT`. These checks are deterministic application-level boundaries, not OS-enforced CPU/memory quotas.
+Crossing a ceiling produces `RESOURCE_LIMIT`. These decimal ceilings keep accepted values serializable under every supported Python integer-string policy, including the interpreter's minimum configurable threshold. They are deterministic application-level boundaries, not OS-enforced CPU/memory quotas.
 
 ## 10. Security and semantic boundary
 
