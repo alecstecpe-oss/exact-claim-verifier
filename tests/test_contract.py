@@ -1,6 +1,19 @@
 from __future__ import annotations
 
+import re
+from pathlib import Path
+
 import exact_claim_verifier
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_package_version_matches_project_metadata() -> None:
+    metadata = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    match = re.search(r'^version = "([^"]+)"$', metadata, flags=re.MULTILINE)
+
+    assert match is not None
+    assert exact_claim_verifier.__version__ == match.group(1) == "0.1.1"
 
 
 def test_rejects_unknown_top_level_field() -> None:
@@ -30,7 +43,7 @@ def test_reports_resource_limit_for_oversized_integer_literal() -> None:
             "domain": "modular-arithmetic",
             "claim": {
                 "kind": "crt-solution",
-                "congruences": [{"residue": "0", "modulus": "1" * 4097}],
+                "congruences": [{"residue": "0", "modulus": "1" * 641}],
                 "solution": "0",
             },
         }

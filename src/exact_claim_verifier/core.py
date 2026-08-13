@@ -11,8 +11,9 @@ _MAX_POLYNOMIAL_NODES = 2_048
 _MAX_POLYNOMIAL_TERMS = 10_000
 _MAX_POLYNOMIAL_DEPTH = 128
 _MAX_EXPONENT = 64
-_MAX_INTEGER_DIGITS = 1_024
-_MAX_INTEGER_RESULT_BITS = 4_096
+_MAX_INTEGER_DIGITS = 640
+_MAX_INTEGER_RESULT_DIGITS = 640
+_INTEGER_RESULT_EXCLUSIVE_LIMIT = 10**_MAX_INTEGER_RESULT_DIGITS
 _MAX_MATRIX_DIMENSION = 64
 
 
@@ -98,24 +99,26 @@ def _expect_keys(node: dict[str, Any], expected: set[str], path: str) -> None:
 
 
 def _bounded_integer_result(value: int, path: str) -> int:
-    if value.bit_length() > _MAX_INTEGER_RESULT_BITS:
+    if abs(value) >= _INTEGER_RESULT_EXCLUSIVE_LIMIT:
         raise _ResourceLimit(
             "INTEGER_RESULT_LIMIT",
             path,
-            f"intermediate integer results are limited to {_MAX_INTEGER_RESULT_BITS} bits",
+            "intermediate integer results are limited to "
+            f"{_MAX_INTEGER_RESULT_DIGITS} decimal digits",
         )
     return value
 
 
 def _bounded_rational_result(value: Fraction, path: str) -> Fraction:
     if (
-        value.numerator.bit_length() > _MAX_INTEGER_RESULT_BITS
-        or value.denominator.bit_length() > _MAX_INTEGER_RESULT_BITS
+        abs(value.numerator) >= _INTEGER_RESULT_EXCLUSIVE_LIMIT
+        or value.denominator >= _INTEGER_RESULT_EXCLUSIVE_LIMIT
     ):
         raise _ResourceLimit(
             "RATIONAL_RESULT_LIMIT",
             path,
-            f"intermediate rational components are limited to {_MAX_INTEGER_RESULT_BITS} bits",
+            "intermediate rational components are limited to "
+            f"{_MAX_INTEGER_RESULT_DIGITS} decimal digits",
         )
     return value
 

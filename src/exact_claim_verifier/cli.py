@@ -11,6 +11,16 @@ from . import __version__, verify_document
 
 _MAX_INPUT_BYTES = 1_048_576
 _MAX_JSON_NESTING = 256
+_MAX_JSON_INTEGER_DIGITS = 640
+
+
+class _CommandInputError(ValueError):
+    pass
+
+
+class _MachineReadableArgumentParser(argparse.ArgumentParser):
+    def error(self, message: str) -> None:
+        raise _CommandInputError(message)
 
 
 class _DuplicateKey(ValueError):
@@ -54,8 +64,8 @@ def _reject_json_constant(value: str) -> None:
 
 
 def _parse_json_integer(value: str) -> int:
-    if len(value.removeprefix("-")) > 1_024:
-        raise _InvalidJsonNumber("integer token exceeds 1024 digits")
+    if len(value.removeprefix("-")) > _MAX_JSON_INTEGER_DIGITS:
+        raise _InvalidJsonNumber(f"integer token exceeds {_MAX_JSON_INTEGER_DIGITS} digits")
     return int(value)
 
 
@@ -104,7 +114,7 @@ def _invalid_result(code: str, path: str, message: str) -> dict[str, Any]:
     }
 
 
-def _read_document(path: Path) -> dict[str, Any]:
+def _read_document(path: Path) -> Any:
     if not path.exists():
         raise FileNotFoundError(path)
     if not path.is_file():
@@ -127,8 +137,8 @@ def _read_document(path: Path) -> dict[str, Any]:
     return document
 
 
-def _parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
+def _parser() -> _MachineReadableArgumentParser:
+    parser = _MachineReadableArgumentParser(
         prog="ecv",
         description="Verify structured exact claims in declared mathematical domains.",
     )
@@ -140,7 +150,16 @@ def _parser() -> argparse.ArgumentParser:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    arguments = _parser().parse_args(argv)
+    try:
+        arguments = _parser().parse_args(argv)
+    except _CommandInputError as error:
+        result = _invalid_result(
+            "COMMAND_INPUT_ERROR",
+            "$",
+            f"invalid command arguments: {error}",
+        )
+        _emit(result)
+        return 2
     try:
         document = _read_document(arguments.document)
     except FileNotFoundError:

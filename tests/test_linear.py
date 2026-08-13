@@ -132,7 +132,7 @@ def test_reports_resource_limit_before_large_matrix_elimination() -> None:
 
 
 def test_reports_resource_limit_for_fraction_growth_during_elimination() -> None:
-    large = "9" * 1000
+    large = "9" * 400
     result = exact_claim_verifier.verify_document(
         {
             "spec": "ECV/1",

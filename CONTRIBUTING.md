@@ -6,8 +6,8 @@ Thank you for improving Exact Claim Verifier.
 
 ```bash
 python -m pip install -e ".[dev]"
-ruff format --check src tests
-ruff check src tests
+ruff format --check src tests tools
+ruff check src tests tools
 pytest
 python -m build
 ```
@@ -22,6 +22,7 @@ A change that can alter a verdict must:
 4. reject unknown semantics rather than guessing;
 5. keep expected failures machine-readable and traceback-free;
 6. add no runtime dependency without explicit security justification.
+7. run boundary tests with `PYTHONINTMAXSTRDIGITS=640`.
 
 New domains should be small and decidable, with an independently reviewable predicate. Natural-language parsers, network calls, plugin execution, and hidden registries do not belong in the verifier TCB.
 

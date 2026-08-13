@@ -116,8 +116,8 @@ ECV v0.1 enforces deterministic in-process ceilings, including:
 
 - input files: 1 MiB;
 - JSON nesting: 256 container levels;
-- integer components: 1,024 decimal digits;
-- intermediate integer/rational components: 4,096 bits;
+- JSON integer tokens and exact integer components: 640 decimal digits;
+- intermediate integer/rational components: 640 decimal digits;
 - rational matrices: at most 64 by 64;
 - polynomial variables: 1 to 8;
 - polynomial AST depth: 128;
@@ -127,6 +127,8 @@ ECV v0.1 enforces deterministic in-process ceilings, including:
 - CRT congruences: 1 through 128.
 
 These are application-level checks, not operating-system CPU or memory quotas. See [the threat model](docs/THREAT_MODEL.md).
+
+The 640-digit ceiling is part of ECV/1. It keeps parsing and result rendering deterministic even when Python runs with its smallest supported `PYTHONINTMAXSTRDIGITS` setting. Values above the ceiling produce `INVALID_INPUT` at the JSON-token layer or `RESOURCE_LIMIT` in an exact domain; they do not escape as interpreter exceptions.
 
 ## Python API
 
@@ -156,13 +158,33 @@ Everything that can change an ECV verdict is in this repository. The package con
 
 ```bash
 python -m pip install -e ".[dev]"
-ruff format --check src tests
-ruff check src tests
+ruff format --check src tests tools
+ruff check src tests tools
 pytest
 python -m build
 ```
 
 The suite includes exact positive and negative predicates, malformed/canonicalization attacks, strict-JSON attacks, resource-boundary cases, and CLI traceback regressions. The release process also installs and replays the built wheel in an isolated environment.
+
+## Release verification
+
+GitHub releases from v0.1.1 onward contain one wheel, one source distribution, `ECV_RELEASE_STATEMENT_V1.json`, and `SHA256SUMS.txt`. The statement binds the tag, commit, distribution digests and sizes, and the committed example digests and expected verdicts. It describes release identity; it does not add provenance to a user's ECV input or elevate a bounded verdict into a universal proof.
+
+After downloading all four assets into one directory, verify their checksums:
+
+```bash
+sha256sum -c SHA256SUMS.txt
+```
+
+With a recent GitHub CLI, verify build provenance for an asset while pinning the repository and release workflow:
+
+```bash
+gh attestation verify exact_claim_verifier-0.1.1-py3-none-any.whl \
+  --repo alecstecpe-oss/exact-claim-verifier \
+  --signer-workflow alecstecpe-oss/exact-claim-verifier/.github/workflows/release.yml
+```
+
+The tag workflow tests source, sdist, wheel, fixtures, release metadata, and checksums before publishing the draft. GitHub's immutable-release attestation supplies a separate binding between the published tag and its final assets.
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md) before contributing or reporting a vulnerability.
 

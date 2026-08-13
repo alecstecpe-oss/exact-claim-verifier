@@ -6,6 +6,28 @@ from pathlib import Path
 from exact_claim_verifier.cli import main
 
 
+def test_cli_reports_missing_argument_as_json(capsys) -> None:
+    exit_code = main(["verify"])
+
+    captured = capsys.readouterr()
+    result = json.loads(captured.out)
+    assert exit_code == 2
+    assert result["verdict"] == "INVALID_INPUT"
+    assert result["errors"][0]["code"] == "COMMAND_INPUT_ERROR"
+    assert captured.err == ""
+
+
+def test_cli_reports_unknown_command_as_json(capsys) -> None:
+    exit_code = main(["não-🔒"])
+
+    captured = capsys.readouterr()
+    result = json.loads(captured.out)
+    assert exit_code == 2
+    assert result["errors"][0]["code"] == "COMMAND_INPUT_ERROR"
+    assert captured.out.isascii()
+    assert captured.err == ""
+
+
 def test_cli_verifies_document_and_emits_canonical_json(tmp_path, capsys) -> None:
     claim_path = tmp_path / "claim.json"
     claim_path.write_text(

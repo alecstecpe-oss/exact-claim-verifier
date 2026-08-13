@@ -30,3 +30,5 @@ Do not include secrets or personal data. Please avoid publishing an exploit befo
 ECV v0.1 verifies only the exact structured predicates in the three ECV/1 domains. It does not authenticate authors, validate natural-language formalization, prove real-world source data, impose OS resource quotas, or protect a compromised runtime.
 
 Read [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) before security-sensitive use.
+
+For release artifacts, verify both `SHA256SUMS.txt` and the GitHub artifact attestation. These checks bind bytes to the published build but do not establish mathematical truth beyond the declared ECV/1 predicate.
