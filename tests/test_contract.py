@@ -13,7 +13,7 @@ def test_package_version_matches_project_metadata() -> None:
     match = re.search(r'^version = "([^"]+)"$', metadata, flags=re.MULTILINE)
 
     assert match is not None
-    assert exact_claim_verifier.__version__ == match.group(1) == "0.1.1"
+    assert exact_claim_verifier.__version__ == match.group(1) == "0.2.0"
 
 
 def test_rejects_unknown_top_level_field() -> None:
@@ -65,6 +65,22 @@ def test_python_api_rejects_nonstring_object_key_without_throwing() -> None:
 
     assert result["verdict"] == "INVALID_INPUT"
     assert result["errors"][0]["code"] == "NONSTRING_OBJECT_KEY"
+
+
+def test_nonstring_unhashable_spec_fails_closed() -> None:
+    result = exact_claim_verifier.verify_document(
+        {"spec": [], "domain": "future-domain", "claim": {"kind": "future-claim"}}
+    )
+
+    assert result["format"] == "ECV_RESULT_V1"
+    assert result["verdict"] == "INVALID_INPUT"
+    assert result["errors"] == [
+        {
+            "code": "UNSUPPORTED_SPEC",
+            "message": "only ECV/1 and ECV/2 are supported",
+            "path": "$.spec",
+        }
+    ]
 
 
 def test_valid_unknown_domain_abstains() -> None:

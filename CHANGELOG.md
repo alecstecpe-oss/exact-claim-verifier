@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here.
 
+## 0.2.0 - 2026-08-13
+
+- Add the explicit `ECV/2` contract while preserving `ECV/1` semantics.
+- Add exact certificate checking for rational linear-program optimality via primal/dual feasibility and objective agreement.
+- Add a byte-exact nine-case `ECV_CONFORMANCE_V1` corpus and external runner covering all five verdicts.
+- Fix cross-platform canonical CLI bytes by emitting LF directly instead of platform-translated newlines.
+- Fail closed when the Python API receives a non-string, unhashable `spec` value instead of leaking `TypeError`.
+- Add a reusable composite GitHub Action with explicit expected-verdict gating.
+- Add schema compatibility policy and an honest comparison with CAS, SMT solvers, proof assistants, and proof checkers.
+- Bind the conformance archive in `ECV_RELEASE_STATEMENT_V2` and release checksums.
+
 ## 0.1.1 - 2026-08-13
 
 - Make JSON-token, exact-component, and intermediate-result ceilings host-independent at 640 decimal digits.

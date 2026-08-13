@@ -23,7 +23,8 @@ A change that can alter a verdict must:
 5. keep expected failures machine-readable and traceback-free;
 6. add no runtime dependency without explicit security justification.
 7. run boundary tests with `PYTHONINTMAXSTRDIGITS=640`.
+8. add or update conformance vectors when a numbered public contract changes.
 
-New domains should be small and decidable, with an independently reviewable predicate. Natural-language parsers, network calls, plugin execution, and hidden registries do not belong in the verifier TCB.
+New domains should be small and decidable, with an independently reviewable predicate. Expanding mathematical authority requires a new numbered `ECV/N` contract rather than silently widening an existing contract. Natural-language parsers, network calls, plugin execution, and hidden registries do not belong in the verifier TCB.
 
 For suspected vulnerabilities, use [SECURITY.md](SECURITY.md) instead of a public issue.

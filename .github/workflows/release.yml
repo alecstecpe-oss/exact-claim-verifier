@@ -49,17 +49,21 @@ jobs:
           .wheel-venv/bin/python -m pip install --no-deps dist/*.whl
           test "$(.wheel-venv/bin/ecv --version)" = "ecv ${GITHUB_REF_NAME#v}"
           .wheel-venv/bin/ecv verify examples/linear-valid.json
+          .wheel-venv/bin/ecv verify examples/linear-program-valid.json
           .wheel-venv/bin/ecv verify examples/polynomial-valid.json
           .wheel-venv/bin/ecv verify examples/modular-valid.json
           set +e
           .wheel-venv/bin/ecv verify examples/polynomial-refuted.json
           refuted_exit=$?
+          .wheel-venv/bin/ecv verify examples/linear-program-refuted.json
+          lp_refuted_exit=$?
           .wheel-venv/bin/ecv verify examples/modular-abstain.json
           abstain_exit=$?
           .wheel-venv/bin/ecv verify examples/linear-invalid.json
           invalid_exit=$?
           set -e
           test "$refuted_exit" -eq 1
+          test "$lp_refuted_exit" -eq 1
           test "$abstain_exit" -eq 1
           test "$invalid_exit" -eq 2
           set +e
@@ -97,11 +101,14 @@ jobs:
           assert result["verdict"] == "RESOURCE_LIMIT"
           assert result["errors"][0]["code"] == "INTEGER_RESULT_LIMIT"
           PY
+          .wheel-venv/bin/python tools/run_conformance.py conformance -- \
+            .wheel-venv/bin/ecv verify
       - name: Build and replay release metadata
         run: |
           python tools/build_release_metadata.py \
             --dist-dir dist \
             --examples-dir examples \
+            --conformance-dir conformance \
             --output-dir release \
             --version "${GITHUB_REF_NAME#v}" \
             --tag "$GITHUB_REF_NAME" \
@@ -114,7 +121,8 @@ jobs:
           subject-path: |
             release/*.whl
             release/*.tar.gz
-            release/ECV_RELEASE_STATEMENT_V1.json
+            release/ECV_CONFORMANCE_V1.zip
+            release/ECV_RELEASE_STATEMENT_V2.json
             release/SHA256SUMS.txt
       - name: Create immutable-ready draft and publish it
         env:

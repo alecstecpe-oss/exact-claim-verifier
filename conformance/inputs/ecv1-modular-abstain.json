@@ -1,0 +1,1 @@
+{"claim":{"congruences":[{"modulus":"4","residue":"1"},{"modulus":"6","residue":"3"}],"kind":"crt-solution","solution":"9"},"domain":"modular-arithmetic","spec":"ECV/1"}

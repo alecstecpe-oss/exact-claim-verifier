@@ -1,0 +1,88 @@
+name: Exact Claim Verifier
+
+description: Verify one ECV document and require an explicit bounded verdict.
+
+inputs:
+  document:
+    description: Path to an ECV/1 or ECV/2 JSON document in the caller workspace.
+    required: true
+  expected-verdict:
+    description: Exact verdict required for the step to pass.
+    required: false
+    default: EXACTLY_VERIFIED_IN_DOMAIN
+  python-version:
+    description: Python version used for the reference checker.
+    required: false
+    default: "3.12"
+  result-path:
+    description: Path written with the canonical ECV_RESULT_V1 JSON.
+    required: false
+    default: ecv-result.json
+
+outputs:
+  verdict:
+    description: The bounded ECV verdict.
+    value: ${{ steps.verify.outputs.verdict }}
+  result-path:
+    description: Path containing the canonical ECV_RESULT_V1 JSON.
+    value: ${{ steps.verify.outputs.result-path }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      with:
+        python-version: ${{ inputs.python-version }}
+    - name: Install the pinned action checkout
+      shell: bash
+      run: python -m pip install --disable-pip-version-check --no-deps "$GITHUB_ACTION_PATH"
+    - name: Verify the document and require the declared verdict
+      id: verify
+      shell: bash
+      env:
+        ECV_DOCUMENT: ${{ inputs.document }}
+        ECV_EXPECTED_VERDICT: ${{ inputs.expected-verdict }}
+        ECV_RESULT_PATH: ${{ inputs.result-path }}
+      run: |
+        python - <<'PY'
+        import os
+
+        value = os.environ["ECV_RESULT_PATH"]
+        if not value or "\n" in value or "\r" in value:
+            raise SystemExit("result-path must be non-empty and contain no CR/LF")
+        PY
+        mkdir -p "$(dirname "$ECV_RESULT_PATH")"
+        set +e
+        python -m exact_claim_verifier.cli verify -- "$ECV_DOCUMENT" > "$ECV_RESULT_PATH"
+        status=$?
+        set -e
+        cat "$ECV_RESULT_PATH"
+        ECV_STATUS="$status" python - <<'PY'
+        import json
+        import os
+        from pathlib import Path
+
+        exits = {
+            "EXACTLY_VERIFIED_IN_DOMAIN": 0,
+            "REFUTED_IN_DOMAIN": 1,
+            "ABSTAIN_OUT_OF_DOMAIN": 1,
+            "RESOURCE_LIMIT": 1,
+            "INVALID_INPUT": 2,
+        }
+        result_path = Path(os.environ["ECV_RESULT_PATH"])
+        raw = result_path.read_bytes()
+        result = json.loads(raw)
+        verdict = result["verdict"]
+        expected = os.environ["ECV_EXPECTED_VERDICT"]
+        status = int(os.environ["ECV_STATUS"])
+        if expected not in exits:
+            raise SystemExit(f"unsupported expected verdict: {expected}")
+        if status != exits[verdict]:
+            raise SystemExit(f"CLI exit {status} disagrees with verdict {verdict}")
+        if verdict != expected:
+            raise SystemExit(f"expected {expected}, observed {verdict}")
+        Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8").write(
+            f"verdict={verdict}\nresult-path={result_path}\n"
+        )
+        PY

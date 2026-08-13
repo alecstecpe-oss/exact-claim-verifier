@@ -1,0 +1,1 @@
+{"claim_kind":"unique-solution","derived":{},"domain":"rational-linear-system","errors":[{"code":"NONCANONICAL_RATIONAL","message":"rational must use its reduced canonical form","path":"$.claim.solution[0]"}],"format":"ECV_RESULT_V1","spec":"ECV/1","verdict":"INVALID_INPUT"}
