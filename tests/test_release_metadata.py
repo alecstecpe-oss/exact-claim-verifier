@@ -1,13 +1,22 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 from pathlib import Path
 
 import pytest
 
 from exact_claim_verifier import verify_document
-from tools.build_release_metadata import EXPECTED_EXAMPLE_VERDICTS, build_release_metadata
+
+ROOT = Path(__file__).resolve().parents[1]
+TOOL_PATH = ROOT / "tools" / "build_release_metadata.py"
+TOOL_SPEC = importlib.util.spec_from_file_location("ecv_build_release_metadata", TOOL_PATH)
+assert TOOL_SPEC is not None and TOOL_SPEC.loader is not None
+TOOL_MODULE = importlib.util.module_from_spec(TOOL_SPEC)
+TOOL_SPEC.loader.exec_module(TOOL_MODULE)
+EXPECTED_EXAMPLE_VERDICTS = TOOL_MODULE.EXPECTED_EXAMPLE_VERDICTS
+build_release_metadata = TOOL_MODULE.build_release_metadata
 
 EXAMPLE_NAMES = [
     "linear-invalid.json",
@@ -25,7 +34,6 @@ EXPECTED_VERDICTS = {
     "polynomial-refuted.json": "REFUTED_IN_DOMAIN",
     "polynomial-valid.json": "EXACTLY_VERIFIED_IN_DOMAIN",
 }
-ROOT = Path(__file__).resolve().parents[1]
 
 
 def _sha256(path: Path) -> str:
