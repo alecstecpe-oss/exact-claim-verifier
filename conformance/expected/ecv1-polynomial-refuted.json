@@ -1,0 +1,1 @@
+{"claim_kind":"identity","derived":{"left_normal_form":[{"coefficient":"1","powers":[1]},{"coefficient":"1","powers":[0]}],"right_normal_form":[{"coefficient":"1","powers":[1]},{"coefficient":"2","powers":[0]}],"variables":["x"]},"domain":"integer-polynomial-identity","errors":[],"format":"ECV_RESULT_V1","spec":"ECV/1","verdict":"REFUTED_IN_DOMAIN"}

@@ -6,7 +6,7 @@
 
 Exact Claim Verifier (ECV) is a small, offline reference checker for structured exact claims in explicitly declared mathematical domains. It uses only the Python standard library at runtime and never converts exact values to floating point.
 
-ECV does not parse natural-language mathematics. A producer supplies an `ECV/1` JSON claim; the public checker validates its schema, recomputes the relevant exact predicate, and returns a bounded verdict.
+ECV does not parse natural-language mathematics. A producer supplies an explicitly versioned `ECV/1` or `ECV/2` JSON claim; the public checker validates its schema, recomputes the relevant exact predicate, and returns a bounded verdict.
 
 ## Five-minute replay
 
@@ -36,15 +36,18 @@ ecv verify examples/polynomial-refuted.json
 
 It exits `1` with `REFUTED_IN_DOMAIN`. An unsupported but well-formed domain or unmet supported-domain precondition exits `1` with `ABSTAIN_OUT_OF_DOMAIN`. Malformed input exits `2` with `INVALID_INPUT`.
 
-## Supported domains in v0.1
+## Supported domains in v0.2
 
 | Domain | Claim kind | Exact check |
 |---|---|---|
 | `rational-linear-system` | `unique-solution` | Recomputes `A*x = b`, `rank(A)`, and `rank([A|b])` over canonical rational numbers. |
 | `integer-polynomial-identity` | `identity` | Normalizes both structured polynomial ASTs over `Z[x1,...,xn]` and compares their coefficient maps. |
 | `modular-arithmetic` | `crt-solution` | Checks a canonical solution against pairwise-coprime congruences and derives the uniqueness modulus. |
+| `rational-linear-program` (`ECV/2`) | `optimal-solution-certificate` | Checks exact primal and dual feasibility plus equal objective values for a rational `max c^T x` / `min b^T y` pair. |
 
-The normative contract is [ECV specification v1](spec/ECV_SPEC_V1.md).
+The normative contracts are [ECV/1](spec/ECV_SPEC_V1.md) and [ECV/2](spec/ECV_SPEC_V2.md). `ECV/1` remains frozen to its three original domains; the LP domain requires `ECV/2`. See the [compatibility policy](docs/COMPATIBILITY.md).
+
+The LP checker validates a supplied certificate. It does not search for an optimum, solve arbitrary linear programs, or decide infeasibility or unboundedness without a closing witness.
 
 ## Input is structured, not executable text
 
@@ -105,14 +108,14 @@ ECV does not establish that:
 - a natural-language question was translated into the right formal claim;
 - the supplied matrix, polynomial, congruences, or proposed solution describe the real-world object intended by an author;
 - an input or result has a particular author, timestamp, provenance, or publication history;
-- arbitrary mathematics outside the three documented v0.1 domains is true;
+- arbitrary mathematics outside the explicitly selected numbered contract is true;
 - the Python runtime, operating system, or hardware is uncompromised.
 
 For byte integrity, inventory, and external root pinning, compose ECV with [Verifiable Evidence Capsule](https://github.com/alecstecpe-oss/verifiable-evidence-capsule). VEC does not add mathematical truth; ECV does not add provenance. Their claims remain separate.
 
 ## Resource ceilings
 
-ECV v0.1 enforces deterministic in-process ceilings, including:
+ECV v0.2 enforces deterministic in-process ceilings, including:
 
 - input files: 1 MiB;
 - JSON nesting: 256 container levels;
@@ -152,7 +155,32 @@ ECV was extracted as a clean, standalone trust kernel from a broader governed sy
 4. derive evidence and verdicts by replay;
 5. abstain when the checker lacks authority.
 
-Everything that can change an ECV verdict is in this repository. The package contains no South runtime, model, prompt, dataset, private ontology, search heuristic, orchestration layer, memory, hardware integration, or certificate producer. ECV has no runtime dependency on South.
+Everything that can change an ECV verdict is in this repository. The package contains no private runtime, model, prompt, dataset, ontology, search heuristic, orchestration layer, memory, hardware integration, or certificate producer.
+
+The underlying algorithms are established mathematics. ECV's contribution is the composition of a small public trust boundary, canonical exact representations, numbered claim contracts, typed abstention/resource outcomes, offline replay, and public conformance vectors. See the [comparison with CAS, SMT solvers, proof assistants, and proof checkers](docs/COMPARISON.md).
+
+## Conformance and independent implementations
+
+`conformance/ECV_CONFORMANCE_V1.json` binds nine byte-exact inputs, expected result bytes, SHA-256 digests, exits, and all five verdict classes across `ECV/1` and `ECV/2`.
+
+```bash
+python tools/run_conformance.py conformance -- ecv verify
+```
+
+Replace `ecv verify` with another implementation's command to check exact interoperability. A corpus pass is finite evidence, not formal verification of the implementation.
+
+## GitHub Action
+
+The repository is also a composite Action:
+
+```yaml
+- uses: alecstecpe-oss/exact-claim-verifier@v0.2.0
+  with:
+    document: claims/optimality.json
+    expected-verdict: EXACTLY_VERIFIED_IN_DOMAIN
+```
+
+See [the Action contract](docs/GITHUB_ACTION.md). Pin a release or commit and always require an explicit verdict.
 
 ## Development
 
@@ -168,9 +196,9 @@ The suite includes exact positive and negative predicates, malformed/canonicaliz
 
 ## Release verification
 
-GitHub releases from v0.1.1 onward contain one wheel, one source distribution, `ECV_RELEASE_STATEMENT_V1.json`, and `SHA256SUMS.txt`. The statement binds the tag, commit, distribution digests and sizes, and the committed example digests and expected verdicts. It describes release identity; it does not add provenance to a user's ECV input or elevate a bounded verdict into a universal proof.
+GitHub release v0.2.0 contains one wheel, one source distribution, `ECV_CONFORMANCE_V1.zip`, `ECV_RELEASE_STATEMENT_V2.json`, and `SHA256SUMS.txt`. The statement binds the tag, commit, distribution digests and sizes, committed examples and expected verdicts, and the conformance corpus. It describes release identity; it does not add provenance to a user's ECV input or elevate a bounded verdict into a universal proof.
 
-After downloading all four assets into one directory, verify their checksums:
+After downloading all release assets into one directory, verify their checksums:
 
 ```bash
 sha256sum -c SHA256SUMS.txt
@@ -179,7 +207,7 @@ sha256sum -c SHA256SUMS.txt
 With a recent GitHub CLI, verify build provenance for an asset while pinning the repository and release workflow:
 
 ```bash
-gh attestation verify exact_claim_verifier-0.1.1-py3-none-any.whl \
+gh attestation verify exact_claim_verifier-0.2.0-py3-none-any.whl \
   --repo alecstecpe-oss/exact-claim-verifier \
   --signer-workflow alecstecpe-oss/exact-claim-verifier/.github/workflows/release.yml
 ```

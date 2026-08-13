@@ -1,9 +1,14 @@
 from __future__ import annotations
 
 import json
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 from exact_claim_verifier.cli import main
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_cli_reports_missing_argument_as_json(capsys) -> None:
@@ -54,6 +59,30 @@ def test_cli_verifies_document_and_emits_canonical_json(tmp_path, capsys) -> Non
     assert exit_code == 0
     assert json.loads(output)["verdict"] == "EXACTLY_VERIFIED_IN_DOMAIN"
     assert output == json.dumps(json.loads(output), sort_keys=True, separators=(",", ":")) + "\n"
+
+
+def test_cli_subprocess_emits_platform_independent_lf_bytes(tmp_path) -> None:
+    claim_path = tmp_path / "claim.json"
+    claim_path.write_text(
+        '{"spec":"ECV/1","domain":"future","claim":{"kind":"future"}}',
+        encoding="ascii",
+    )
+    environment = os.environ.copy()
+    environment["PYTHONPATH"] = str(ROOT / "src")
+
+    completed = subprocess.run(
+        [sys.executable, "-m", "exact_claim_verifier.cli", "verify", str(claim_path)],
+        cwd=ROOT,
+        env=environment,
+        check=False,
+        capture_output=True,
+    )
+
+    assert completed.returncode == 1
+    assert completed.stderr == b""
+    assert completed.stdout.endswith(b"\n")
+    assert not completed.stdout.endswith(b"\r\n")
+    assert completed.stdout.count(b"\n") == 1
 
 
 def test_cli_rejects_duplicate_json_key(tmp_path, capsys) -> None:

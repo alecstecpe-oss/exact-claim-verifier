@@ -1,0 +1,1 @@
+{"claim":{"dual_solution":["2","1","0"],"kind":"optimal-solution-certificate","matrix":[["1","1"],["1","0"],["0","1"]],"objective":["3","2"],"optimum":"10","primal_solution":["2","2"],"rhs":["4","2","3"]},"domain":"rational-linear-program","spec":"ECV/1"}

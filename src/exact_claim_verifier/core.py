@@ -295,6 +295,14 @@ def _rank(rows: list[list[Fraction]]) -> int:
     return pivot_row
 
 
+def _dot_product(left: list[Fraction], right: list[Fraction], path: str) -> Fraction:
+    value = Fraction(0)
+    for left_value, right_value in zip(left, right, strict=True):
+        product = _bounded_rational_result(left_value * right_value, path)
+        value = _bounded_rational_result(value + product, path)
+    return value
+
+
 def _invalid(document: Any, code: str, path: str, message: str) -> dict[str, Any]:
     claim = document.get("claim") if isinstance(document, dict) else None
     spec = document.get("spec") if isinstance(document, dict) else None
@@ -572,6 +580,138 @@ def _verify_modular(document: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _verify_linear_program(document: dict[str, Any]) -> dict[str, Any]:
+    claim = document["claim"]
+    expected_keys = {
+        "kind",
+        "matrix",
+        "rhs",
+        "objective",
+        "primal_solution",
+        "dual_solution",
+        "optimum",
+    }
+    try:
+        _expect_keys(claim, expected_keys, "$.claim")
+        if claim["kind"] != "optimal-solution-certificate":
+            raise _InputError(
+                "UNSUPPORTED_CLAIM_KIND",
+                "$.claim.kind",
+                "claim kind is not supported",
+            )
+        raw_matrix = claim["matrix"]
+        if not isinstance(raw_matrix, list) or not raw_matrix:
+            raise _InputError("EMPTY_MATRIX", "$.claim.matrix", "matrix must be nonempty")
+        if any(not isinstance(row, list) for row in raw_matrix):
+            raise _InputError(
+                "MATRIX_ROW_NOT_ARRAY",
+                "$.claim.matrix",
+                "rows must be arrays",
+            )
+        columns = len(raw_matrix[0])
+        if columns == 0:
+            raise _InputError(
+                "EMPTY_MATRIX_ROW",
+                "$.claim.matrix[0]",
+                "rows must be nonempty",
+            )
+        if len(raw_matrix) > _MAX_MATRIX_DIMENSION or columns > _MAX_MATRIX_DIMENSION:
+            raise _ResourceLimit(
+                "MATRIX_DIMENSION_LIMIT",
+                "$.claim.matrix",
+                f"matrix dimensions are limited to {_MAX_MATRIX_DIMENSION} by "
+                f"{_MAX_MATRIX_DIMENSION}",
+            )
+        if any(len(row) != columns for row in raw_matrix):
+            raise _InputError(
+                "RAGGED_MATRIX",
+                "$.claim.matrix",
+                "all matrix rows must have equal length",
+            )
+        rows = len(raw_matrix)
+        vector_contracts = (
+            ("rhs", rows),
+            ("objective", columns),
+            ("primal_solution", columns),
+            ("dual_solution", rows),
+        )
+        for field, expected_length in vector_contracts:
+            value = claim[field]
+            if not isinstance(value, list) or len(value) != expected_length:
+                raise _InputError(
+                    "VECTOR_LENGTH_MISMATCH",
+                    f"$.claim.{field}",
+                    f"{field} must contain exactly {expected_length} values",
+                )
+        matrix = [
+            [
+                _parse_rational(value, f"$.claim.matrix[{row_index}][{column_index}]")
+                for column_index, value in enumerate(row)
+            ]
+            for row_index, row in enumerate(raw_matrix)
+        ]
+        rhs = [
+            _parse_rational(value, f"$.claim.rhs[{index}]")
+            for index, value in enumerate(claim["rhs"])
+        ]
+        objective = [
+            _parse_rational(value, f"$.claim.objective[{index}]")
+            for index, value in enumerate(claim["objective"])
+        ]
+        primal = [
+            _parse_rational(value, f"$.claim.primal_solution[{index}]")
+            for index, value in enumerate(claim["primal_solution"])
+        ]
+        dual = [
+            _parse_rational(value, f"$.claim.dual_solution[{index}]")
+            for index, value in enumerate(claim["dual_solution"])
+        ]
+        optimum = _parse_rational(claim["optimum"], "$.claim.optimum")
+
+        primal_feasible = all(value >= 0 for value in primal) and all(
+            _dot_product(row, primal, "$.claim.primal_solution") <= bound
+            for row, bound in zip(matrix, rhs, strict=True)
+        )
+        dual_feasible = all(value >= 0 for value in dual) and all(
+            _dot_product(
+                [matrix[row][column] for row in range(rows)],
+                dual,
+                "$.claim.dual_solution",
+            )
+            >= objective[column]
+            for column in range(columns)
+        )
+        primal_objective = _dot_product(objective, primal, "$.claim.primal_solution")
+        dual_objective = _dot_product(rhs, dual, "$.claim.dual_solution")
+    except _ResourceLimit as error:
+        return _resource_limit(document, error.code, error.path, error.message)
+    except _InputError as error:
+        return _invalid(document, error.code, error.path, error.message)
+
+    objective_agreement = primal_objective == optimum == dual_objective
+    verified = primal_feasible and dual_feasible and objective_agreement
+    return {
+        "format": "ECV_RESULT_V1",
+        "spec": document["spec"],
+        "domain": document["domain"],
+        "claim_kind": claim["kind"],
+        "verdict": ("EXACTLY_VERIFIED_IN_DOMAIN" if verified else "REFUTED_IN_DOMAIN"),
+        "derived": {
+            "constraints": rows,
+            "variables": columns,
+            "primal_feasible": primal_feasible,
+            "dual_feasible": dual_feasible,
+            "objective_agreement": objective_agreement,
+            "primal_objective": _encode(primal_objective),
+            "dual_objective": _encode(dual_objective),
+            "optimum": _encode(optimum),
+            "primal_solution": [_encode(value) for value in primal],
+            "dual_solution": [_encode(value) for value in dual],
+        },
+        "errors": [],
+    }
+
+
 def verify_document(document: Any) -> dict[str, Any]:
     if not isinstance(document, dict):
         return _invalid(document, "DOCUMENT_NOT_OBJECT", "$", "document must be an object")
@@ -579,8 +719,14 @@ def verify_document(document: Any) -> dict[str, Any]:
         _expect_keys(document, {"spec", "domain", "claim"}, "$")
     except _InputError as error:
         return _invalid(document, error.code, error.path, error.message)
-    if document.get("spec") != "ECV/1":
-        return _invalid(document, "UNSUPPORTED_SPEC", "$.spec", "only ECV/1 is supported")
+    spec = document.get("spec")
+    if not isinstance(spec, str) or spec not in {"ECV/1", "ECV/2"}:
+        return _invalid(
+            document,
+            "UNSUPPORTED_SPEC",
+            "$.spec",
+            "only ECV/1 and ECV/2 are supported",
+        )
     claim = document.get("claim")
     if not isinstance(claim, dict):
         return _invalid(document, "CLAIM_NOT_OBJECT", "$.claim", "claim must be an object")
@@ -606,6 +752,15 @@ def verify_document(document: Any) -> dict[str, Any]:
         return _verify_polynomial(document)
     if domain == "modular-arithmetic":
         return _verify_modular(document)
+    if domain == "rational-linear-program":
+        if document["spec"] != "ECV/2":
+            return _abstain(
+                document,
+                "UNSUPPORTED_DOMAIN_FOR_SPEC",
+                "$.domain",
+                "rational-linear-program requires ECV/2",
+            )
+        return _verify_linear_program(document)
     return {
         "format": "ECV_RESULT_V1",
         "spec": document.get("spec"),

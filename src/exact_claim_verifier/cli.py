@@ -99,7 +99,21 @@ def _check_json_nesting(text: str) -> None:
 
 
 def _emit(result: dict[str, Any]) -> None:
-    print(json.dumps(result, sort_keys=True, separators=(",", ":"), ensure_ascii=True))
+    encoded = (
+        json.dumps(
+            result,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=True,
+        ).encode("ascii")
+        + b"\n"
+    )
+    output = getattr(sys.stdout, "buffer", None)
+    if output is None:
+        sys.stdout.write(encoded.decode("ascii"))
+    else:
+        output.write(encoded)
+        output.flush()
 
 
 def _invalid_result(code: str, path: str, message: str) -> dict[str, Any]:

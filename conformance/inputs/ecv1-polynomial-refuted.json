@@ -1,0 +1,1 @@
+{"claim":{"kind":"identity","left":{"args":[{"name":"x","op":"var"},{"op":"const","value":"1"}],"op":"add"},"right":{"args":[{"name":"x","op":"var"},{"op":"const","value":"2"}],"op":"add"},"variables":["x"]},"domain":"integer-polynomial-identity","spec":"ECV/1"}

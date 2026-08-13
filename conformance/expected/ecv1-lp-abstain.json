@@ -1,0 +1,1 @@
+{"claim_kind":"optimal-solution-certificate","derived":{},"domain":"rational-linear-program","errors":[{"code":"UNSUPPORTED_DOMAIN_FOR_SPEC","message":"rational-linear-program requires ECV/2","path":"$.domain"}],"format":"ECV_RESULT_V1","spec":"ECV/1","verdict":"ABSTAIN_OUT_OF_DOMAIN"}

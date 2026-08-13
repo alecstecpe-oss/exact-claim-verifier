@@ -1,0 +1,1 @@
+{"claim_kind":"identity","derived":{},"domain":"integer-polynomial-identity","errors":[{"code":"INTEGER_RESULT_LIMIT","message":"intermediate integer results are limited to 640 decimal digits","path":"$.claim"}],"format":"ECV_RESULT_V1","spec":"ECV/2","verdict":"RESOURCE_LIMIT"}

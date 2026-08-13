@@ -1,0 +1,1 @@
+{"claim_kind":"unique-solution","derived":{"equations":2,"rank_augmented":2,"rank_matrix":2,"residual_matches":true,"solution":["2","1"],"variables":2},"domain":"rational-linear-system","errors":[],"format":"ECV_RESULT_V1","spec":"ECV/1","verdict":"EXACTLY_VERIFIED_IN_DOMAIN"}

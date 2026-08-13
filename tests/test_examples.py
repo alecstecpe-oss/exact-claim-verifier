@@ -14,6 +14,8 @@ ROOT = Path(__file__).resolve().parents[1]
     ("name", "verdict"),
     [
         ("linear-valid.json", "EXACTLY_VERIFIED_IN_DOMAIN"),
+        ("linear-program-valid.json", "EXACTLY_VERIFIED_IN_DOMAIN"),
+        ("linear-program-refuted.json", "REFUTED_IN_DOMAIN"),
         ("polynomial-valid.json", "EXACTLY_VERIFIED_IN_DOMAIN"),
         ("modular-valid.json", "EXACTLY_VERIFIED_IN_DOMAIN"),
         ("polynomial-refuted.json", "REFUTED_IN_DOMAIN"),
