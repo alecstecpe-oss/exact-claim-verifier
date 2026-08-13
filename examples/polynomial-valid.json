@@ -1,0 +1,21 @@
+{
+  "spec": "ECV/1",
+  "domain": "integer-polynomial-identity",
+  "claim": {
+    "kind": "identity",
+    "variables": ["x"],
+    "left": {
+      "op": "pow",
+      "arg": {"op": "add", "args": [{"op": "var", "name": "x"}, {"op": "const", "value": "1"}]},
+      "exponent": 2
+    },
+    "right": {
+      "op": "add",
+      "args": [
+        {"op": "pow", "arg": {"op": "var", "name": "x"}, "exponent": 2},
+        {"op": "mul", "args": [{"op": "const", "value": "2"}, {"op": "var", "name": "x"}]},
+        {"op": "const", "value": "1"}
+      ]
+    }
+  }
+}

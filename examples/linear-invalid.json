@@ -1,0 +1,10 @@
+{
+  "spec": "ECV/1",
+  "domain": "rational-linear-system",
+  "claim": {
+    "kind": "unique-solution",
+    "matrix": [["1"]],
+    "rhs": ["2/4"],
+    "solution": ["1/2"]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "spec": "ECV/1",
+  "domain": "modular-arithmetic",
+  "claim": {
+    "kind": "crt-solution",
+    "congruences": [
+      {"residue": "1", "modulus": "4"},
+      {"residue": "3", "modulus": "6"}
+    ],
+    "solution": "9"
+  }
+}

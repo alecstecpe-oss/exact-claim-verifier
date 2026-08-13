@@ -1,0 +1,10 @@
+{
+  "spec": "ECV/1",
+  "domain": "integer-polynomial-identity",
+  "claim": {
+    "kind": "identity",
+    "variables": ["x"],
+    "left": {"op": "var", "name": "x"},
+    "right": {"op": "const", "value": "1"}
+  }
+}

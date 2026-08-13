@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: ${{ matrix.os }} / Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install test dependencies
+        run: python -m pip install -e ".[dev]"
+      - name: Check formatting
+        run: ruff format --check src tests
+      - name: Lint
+        run: ruff check src tests
+      - name: Test
+        run: pytest
+
+  package:
+    name: Build and replay distributions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Build distributions
+        run: |
+          python -m pip install build
+          python -m build
+      - name: Test the source distribution
+        run: |
+          mkdir sdist-check
+          tar -xzf dist/*.tar.gz -C sdist-check --strip-components=1
+          python -m venv .sdist-venv
+          .sdist-venv/bin/python -m pip install -e "sdist-check[dev]"
+          test -f sdist-check/spec/ECV_SPEC_V1.md
+          test -f sdist-check/docs/THREAT_MODEL.md
+          test -f sdist-check/examples/linear-valid.json
+          cd sdist-check
+          ../.sdist-venv/bin/python -m pytest
+      - name: Install wheel in an isolated environment
+        run: |
+          python -m venv .wheel-venv
+          .wheel-venv/bin/python -m pip install --no-deps dist/*.whl
+          .wheel-venv/bin/python -I -m pip check
+          .wheel-venv/bin/ecv --version
+      - name: Replay committed fixtures from the wheel
+        run: |
+          .wheel-venv/bin/ecv verify examples/linear-valid.json
+          .wheel-venv/bin/ecv verify examples/polynomial-valid.json
+          .wheel-venv/bin/ecv verify examples/modular-valid.json
+          set +e
+          .wheel-venv/bin/ecv verify examples/polynomial-refuted.json
+          refuted_exit=$?
+          .wheel-venv/bin/ecv verify examples/modular-abstain.json
+          abstain_exit=$?
+          .wheel-venv/bin/ecv verify examples/linear-invalid.json
+          invalid_exit=$?
+          set -e
+          test "$refuted_exit" -eq 1
+          test "$abstain_exit" -eq 1
+          test "$invalid_exit" -eq 2
